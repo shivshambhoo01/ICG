@@ -1,16 +1,3 @@
-/*
-* =================================================================
-* ICG - Automated Backend System (server.js)
-* =================================================================
-* This is the complete, final backend for your ICG platform.
-*
-* --- DEPLOYMENT INSTRUCTIONS ---
-* 1. Save this code as a file named `server.js`.
-* 2. Upload it to the `backend` folder in your GitHub repository.
-* 3. Deploy it on a service like Replit or Render.
-* 4. Once deployed, copy the live URL it gives you.
-*/
-
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
