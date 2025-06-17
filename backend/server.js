@@ -1,81 +1,96 @@
-import express from 'express';
-import cors from 'cors';
-import cron from 'node-cron';
-import { Low } from 'lowdb';
-import { JSONFile } from 'lowdb/node';
+const express = require('express');
+const cors = require('cors');
+const cron = require('node-cron');
+const { Low, JSONFile } = require('lowdb');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 const adapter = new JSONFile('icg_data.json');
-const defaultData = {
-  investmentOpportunities: {
-    IPOs: [],
-    Stocks: [],
-    Funds: [],
-  },
-  marketTrends: [],
-  lastUpdated: null,
-};
+const db = new Low(adapter);
 
-const db = new Low(adapter, defaultData);
+const defaultData = {
+    investmentOpportunities: {
+        IPOs: [],
+        Stocks: [],
+        Funds: []
+    },
+    marketTrends: [],
+    lastUpdated: null
+};
 
 app.use(cors());
 app.use(express.json());
 
 async function refreshDataJob() {
-  console.log('--- Running Daily Data Refresh Job ---');
-  try {
-    const enrichedOpportunities = {
-      IPOs: [/* same IPO data */],
-      Stocks: [/* same stock data */],
-      Funds: [/* same fund data */],
-    };
+    console.log('--- Running Daily Data Refresh Job ---');
+    try {
+        const enrichedOpportunities = {
+            IPOs: [
+                {
+                    name: "NextGen Robotics",
+                    growth: "25-30% p.a.",
+                    rationale: "Leader in warehouse automation, benefiting from the e-commerce boom.",
+                    details: {
+                        date: "Jul 08 - Jul 10, 2025",
+                        size: "₹750 Cr",
+                        price: "₹450-465",
+                        lot: "32 Shares",
+                        registrar: "Link Intime India"
+                    }
+                }
+            ],
+            Stocks: [],
+            Funds: []
+        };
 
-    db.data.investmentOpportunities = enrichedOpportunities;
-    db.data.lastUpdated = new Date().toISOString();
-    await db.write();
+        await db.read();
+        db.data = db.data || defaultData;
+        db.data.investmentOpportunities = enrichedOpportunities;
+        db.data.lastUpdated = new Date().toISOString();
+        await db.write();
 
-    console.log('--- Data Refresh Job Completed Successfully ---');
-  } catch (error) {
-    console.error('--- Data Refresh Job Failed ---', error);
-  }
+        console.log('✅ Data Refresh Job Completed');
+    } catch (error) {
+        console.error('❌ Data Refresh Job Failed', error);
+    }
 }
 
 app.get('/api/investment-opportunities', async (req, res) => {
-  await db.read();
-  res.json(db.data.investmentOpportunities);
+    await db.read();
+    res.json(db.data.investmentOpportunities || {});
 });
 
-app.get('/api/market-trends', (req, res) => {
-  const trends = [
-    { name: 'Renewable Energy', rationale: '...', score: 85 },
-    { name: 'IT & SaaS', rationale: '...', score: 75 },
-    { name: 'Infrastructure', rationale: '...', score: 70 },
-    { name: 'FMCG', rationale: '...', score: -30 },
-    { name: 'Metals', rationale: '...', score: -50 }
-  ];
-  res.json(trends);
+app.get('/api/market-trends', async (req, res) => {
+    const trends = [
+        { name: 'Renewable Energy', rationale: 'Green push', score: 85 },
+        { name: 'IT', rationale: 'Digitization trend', score: 75 }
+    ];
+    res.json(trends);
 });
 
-app.get('/api/stock-analysis/:ticker', (req, res) => {
-  const ticker = req.params.ticker.toUpperCase();
-  const mockData = {
-    'RELIANCE.NS': { name: 'Reliance Industries', price: '2890.50', ... },
-    'DEFAULT': { name: ticker.split('.')[0], price: '1234.56', ... }
-  };
-  const data = mockData[ticker] || mockData['DEFAULT'];
-  res.json(data);
+app.get('/api/stock-analysis/:ticker', async (req, res) => {
+    const ticker = req.params.ticker.toUpperCase();
+    const mockData = {
+        'RELIANCE.NS': {
+            name: 'Reliance',
+            price: '₹2,800',
+            summary: 'Diversified giant'
+        },
+        'DEFAULT': {
+            name: ticker,
+            price: '₹1,234',
+            summary: 'Mock data'
+        }
+    };
+    res.json(mockData[ticker] || mockData.DEFAULT);
 });
 
-cron.schedule('0 8 * * *', refreshDataJob, { timezone: 'Asia/Kolkata' });
+cron.schedule('0 8 * * *', refreshDataJob, { timezone: "Asia/Kolkata" });
 
 app.listen(PORT, async () => {
-  await db.read();
-  if (!db.data || !db.data.lastUpdated) {
-    console.log('Database is empty. Running initial data refresh job...');
-    await refreshDataJob();
-  }
-  console.log(`✅ ICG Backend running on http://localhost:${PORT}`);
-  console.log(`Data last updated at: ${db.data.lastUpdated}`);
+    await db.read();
+    db.data = db.data || defaultData;
+    await db.write();
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
