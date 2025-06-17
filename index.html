@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICG - Investment Strategy & Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1d1d1f; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+        .dark-section { background-color: #000000; color: #f5f5f7; }
+        .btn-primary { background-image: linear-gradient(to right, #6d28d9, #4f46e5); color: white; font-weight: 600; padding: 0.75rem 1.75rem; border-radius: 9999px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(93, 61, 255, 0.2); }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(93, 61, 255, 0.3); }
+        .section-title { font-size: 2.5rem; sm:font-size: 3rem; md:font-size: 4rem; font-weight: 700; line-height: 1.1; text-align: center; }
+        .section-subtitle { font-size: 1.125rem; md:font-size: 1.25rem; color: #6e6e73; max-width: 60ch; margin: 1rem auto 0; text-align: center; }
+        .dark .section-subtitle { color: #86868b; }
+        .report-card { background-color: #f5f5f7; border-radius: 1.5rem; padding: 1.5rem; sm:padding: 2rem; border: 1px solid #e5e5e5; }
+        .dark .report-card { background-color: #1d1d1f; border-color: #424245; }
+        .form-input { width: 100%; background-color: #e8e8ed; border-radius: 0.75rem; padding: 1rem; border: none; font-size: 1rem; color: #1d1d1f; }
+        .dark .form-input { background-color: #333336; color: #f5f5f7; }
+        .tool-selector-btn { background: linear-gradient(to right, #2a2a3a, #1d1d1f); color: #f5f5f7; width: 100%; text-align: center; padding: 1.5rem; font-size: 1.25rem; font-weight: 600; border-radius: 1.25rem; transition: all 0.3s; border: 1px solid #424245; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .tool-selector-btn.active, .tool-selector-btn:hover { background: linear-gradient(to right, #5d3dff, #7c3aed); color: white; border-color: #7c3aed; transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(93, 61, 255, 0.3); }
+        .tool-content-wrapper { max-height: 0; overflow: hidden; transition: max-height 0.7s ease-in-out, margin-top 0.7s ease-in-out, opacity 0.5s; opacity: 0; }
+        .tool-content-wrapper.open { max-height: 1500px; margin-top: 2rem; opacity: 1; }
+        .investment-card { background-color: #f5f5f7; border-radius: 1.5rem; padding: 1.5rem; border: 1px solid #e5e5e5; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; width: calc(100% - 2rem); sm:width: 320px; transition: all 0.3s; }
+        .dark .investment-card { background-color: #1d1d1f; border-color: #424245; }
+        .horizontal-scroll { display: flex; gap: 1rem; overflow-x: auto; padding: 0.5rem; margin: -0.5rem; scroll-snap-type: x mandatory; }
+        .horizontal-scroll > * { scroll-snap-align: start; }
+        ::-webkit-scrollbar { height: 8px; } ::-webkit-scrollbar-track { background: #e8e8ed; border-radius: 10px; } .dark ::-webkit-scrollbar-track { background: #333336; } ::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 10px; } .dark ::-webkit-scrollbar-thumb { background: #555; }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+        .details-section { max-height: 0; overflow: hidden; transition: max-height 0.7s ease-in-out, margin-top 0.7s ease-in-out, opacity 0.7s; opacity: 0;}
+        .details-section.open { opacity: 1; margin-top: 1.5rem; }
+        .modal-body { max-height: 80vh; overflow-y: auto; }
+        .light-modal-content { background-color: rgba(245, 245, 247, 0.8); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: #1d1d1f; border: 1px solid rgba(0,0,0,0.1); }
+        .light-modal-content .details-grid div { background-color: #e8e8ed; }
+        .light-modal-content .details-grid p:first-child { color: #6e6e73; }
+        .light-modal-content .details-grid p:last-child { color: #1d1d1f; }
+        .light-modal-content h4 { color: #1d1d1f; }
+        .light-modal-content .rationale-text { color: #6e6e73; }
+        .light-modal-content #modal-footer { border-color: #d2d2d7; }
+        .light-modal-content .icg-logo { color: #1d1d1f; }
+        .growth-card-popup { background: linear-gradient(to right, #6d28d9, #4f46e5); border-radius: 0.75rem; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-200">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">ICG<span class="text-purple-600">.</span></h1>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#tools" class="text-sm text-gray-600 hover:text-black">Tools</a>
+                <a href="#where-to-invest" class="text-sm text-gray-600 hover:text-black">Where to Invest</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="py-20 md:py-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-7xl font-bold leading-tight tracking-tighter">Investment Strategy,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">Intelligently Designed.</span></h1>
+                <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Stop guessing. Start planning. ICG provides professional-grade tools to build a data-driven investment strategy and analyze the market with clarity.</p>
+            </div>
+        </section>
+
+        <section id="tools" class="py-20 md:py-28 dark-section">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="section-title">Investment <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Tools</span></h2>
+                    <p class="section-subtitle">Select a tool to begin crafting your financial plan.</p>
+                </div>
+                <div id="tool-switcher" class="mt-12 max-w-4xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button id="select-strategy-tool" class="tool-selector-btn">Market Trend Analyzer</button>
+                        <button id="select-analysis-tool" class="tool-selector-btn">Live Stock Analysis</button>
+                    </div>
+                    <div id="strategy-studio-content" class="tool-content-wrapper"><div class="text-center"><button id="generate-strategy-btn" class="btn-primary">Find Top Opportunities</button></div><div id="strategy-output" class="mt-6 transition-opacity duration-500"></div></div>
+                    <div id="live-analysis-content" class="tool-content-wrapper"><div class="max-w-xl mx-auto mb-6"><div class="flex flex-col sm:flex-row gap-4"><input type="text" id="stock-ticker-input" class="form-input flex-grow" placeholder="e.g., RELIANCE.NS"><button id="analyze-btn" class="btn-primary">Analyze Stock</button></div></div><div id="analysis-output" class="max-w-4xl mx-auto"></div></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="where-to-invest" class="py-20 md:py-28">
+             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center"><h2 class="section-title !text-black">Where to <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Invest Now</span></h2><p class="section-subtitle">Actionable ideas based on our strategic analysis.</p></div>
+                <div id="investment-suggestions" class="mt-16 space-y-12"></div>
+             </div>
+        </section>
+
+        <section class="dark-section py-20 md:py-28">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                 <h2 class="text-4xl md:text-5xl font-bold">Your Journey to <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Financial Mastery</span> Begins Now.</h2>
+                 <p class="mt-6 text-lg text-gray-400 max-w-3xl mx-auto">The best time to invest was yesterday. The second best time is today. Use these tools, build your strategy, and take confident control of your financial future.</p>
+                 <div class="mt-10"><a href="#tools" class="btn-primary text-lg">Start Building</a></div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="details-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div id="modal-content" class="relative w-full max-w-2xl light-modal-content rounded-2xl shadow-2xl scale-95 opacity-0 transition-all duration-300"></div>
+    </div>
+
+    <script>
+    const investmentData = {
+        IPOs: [{ name: "NextGen Robotics", growth: "25-30% p.a.", rationale: "Leader in warehouse automation, benefiting from the e-commerce boom. Strong B2B clients and pre-IPO demand indicate high growth potential.", details: { date: "Jul 08 - Jul 10, 2025", size: "₹750 Cr", price: "₹450-465", lot: "32 Shares", registrar: "Link Intime India" } }, { name: "Fintech Innovations", growth: "30-35% p.a.", rationale: "Disrupting digital payments with a unique micro-lending platform. High Grey Market Premium (GMP) reflects strong investor confidence.", details: { date: "Jul 15 - Jul 17, 2025", size: "₹1,200 Cr", price: "₹880-900", lot: "16 Shares", registrar: "KFin Technologies" } }, { name: "GreenDrive EV", growth: "28-32% p.a.", rationale: "Key manufacturer of EV batteries with government contracts under the FAME scheme. Critical player in a high-growth sector.", details: { date: "Jul 22 - Jul 24, 2025", size: "₹2,500 Cr", price: "₹610-625", lot: "24 Shares", registrar: "Link Intime India" } }, { name: "Wellness Pharma", growth: "15-20% p.a.", rationale: "Specializes in generic medicines for chronic illnesses. A defensive play with stable, non-cyclical demand.", details: { date: "Aug 05 - Aug 07, 2025", size: "₹900 Cr", price: "₹310-320", lot: "46 Shares", registrar: "KFin Technologies" } }, { name: "CyberSecure Inc.", growth: "22-26% p.a.", rationale: "A cybersecurity firm addressing the increasing need for digital protection. High demand from corporate clients.", details: { date: "Aug 12 - Aug 14, 2025", size: "₹1,500 Cr", price: "₹550-575", lot: "26 Shares", registrar: "Link Intime India" } }],
+        Stocks: [{ name: "Borosil Renewables", growth: "18-22% p.a.", rationale: "India's sole solar glass manufacturer, a direct beneficiary of the national solar energy mission.", details: { marketCap: "₹8,500 Cr", pe: "45.5", high52: "₹748", low52: "₹410", owner: "Pradeep Kheruka", founded: "1962", dividendYield: "0.15%" } }, { name: "Tata Elxsi", growth: "20-24% p.a.", rationale: "Niche IT design firm crucial to the EV and 5G revolutions. High-margin business with a global clientele.", details: { marketCap: "₹45,000 Cr", pe: "60.2", high52: "₹9,200", low52: "₹6,400", owner: "Tata Group", founded: "1989", dividendYield: "0.80%" } }, { name: "Larsen & Toubro", growth: "16-20% p.a.", rationale: "Infrastructure giant with a massive order book, set to benefit from government's capex push. A stable, long-term bet.", details: { marketCap: "₹4,80,000 Cr", pe: "35.1", high52: "₹3,948", low52: "₹2,750", owner: "S. N. Subrahmanyan (CEO)", founded: "1938", dividendYield: "1.20%" } }, { name: "Apollo Hospitals", growth: "14-18% p.a.", rationale: "Defensive stock in the ever-growing healthcare sector. Rising health consciousness and medical tourism are key drivers.", details: { marketCap: "₹88,000 Cr", pe: "90.5", high52: "₹6,870", low52: "₹5,100", owner: "Prathap C. Reddy", founded: "1983", dividendYield: "0.25%" } }, { name: "Dixon Technologies", growth: "25-30% p.a.", rationale: "Leading electronics manufacturing services (EMS) provider, benefiting from the Production-Linked Incentive (PLI) scheme.", details: { marketCap: "₹68,000 Cr", pe: "140.8", high52: "₹12,470", low52: "₹5,800", owner: "Sunil Vachani", founded: "1993", dividendYield: "0.05%" } }],
+        Funds: [{ name: "Parag Parikh Flexi Cap", growth: "15-18% p.a.", rationale: "Excellent diversification with domestic and international equities, including global tech leaders. A solid long-term choice.", details: { aum: "₹66,000 Cr", expenseRatio: "0.62%", topHoldings: "HDFC Bank, Alphabet, Microsoft" } }, { name: "Quant Small Cap", growth: "22-28% p.a.", rationale: "An aggressive fund focused on high-potential small-cap companies. Suitable for investors with a higher risk appetite.", details: { aum: "₹21,000 Cr", expenseRatio: "0.77%", topHoldings: "Reliance, Jio Financial, IRB Infra" } }, { name: "ICICI Prudential Tech", growth: "18-25% p.a.", rationale: "A sectoral fund focused on the booming Indian IT and technology space. Good for tactical allocation.", details: { aum: "₹12,000 Cr", expenseRatio: "0.85%", topHoldings: "Infosys, TCS, HCL Tech" } }, { name: "Mirae Asset Emerging Bluechip", growth: "16-20% p.a.", rationale: "Focuses on high-quality large and mid-cap stocks, offering a blend of stability and growth.", details: { aum: "₹35,000 Cr", expenseRatio: "0.66%", topHoldings: "ICICI Bank, L&T, Axis Bank" } }, { name: "Axis Nifty 50 Index", growth: "12-15% p.a.", rationale: "A low-cost way to invest in India's top 50 companies. Ideal for beginners and for the core of any portfolio.", details: { aum: "₹18,000 Cr", expenseRatio: "0.10%", topHoldings: "Reliance, HDFC Bank, ICICI Bank" } }]
+    };
+    
+    // --- All JS logic from previous version is included and updated ---
+    const strategyContent = document.getElementById('strategy-studio-content');
+    const analysisContent = document.getElementById('live-analysis-content');
+    const selectStrategyBtn = document.getElementById('select-strategy-tool');
+    const selectAnalysisBtn = document.getElementById('select-analysis-tool');
+    const generateStrategyBtn = document.getElementById('generate-strategy-btn');
+    const strategyOutput = document.getElementById('strategy-output');
+    const investmentSuggestionsEl = document.getElementById('investment-suggestions');
+    const modal = document.getElementById('details-modal');
+    const modalContent = document.getElementById('modal-content');
+    
+    function switchTool(tool) {
+        if (tool === 'strategy') { selectStrategyBtn.classList.add('active'); selectAnalysisBtn.classList.remove('active'); strategyContent.classList.add('open'); analysisContent.classList.remove('open'); } 
+        else { selectAnalysisBtn.classList.add('active'); selectStrategyBtn.classList.remove('active'); analysisContent.classList.add('open'); strategyContent.classList.remove('open'); }
+    }
+    selectStrategyBtn.addEventListener('click', () => switchTool('strategy'));
+    selectAnalysisBtn.addEventListener('click', () => switchTool('analysis'));
+    
+    // --- New Strategy Studio: Sector Rotation Analyzer ---
+    function generateStrategy() {
+        strategyOutput.style.opacity = '0';
+        strategyOutput.innerHTML = `<p class="text-center text-gray-400">Analyzing market trends...</p>`;
+        strategyOutput.style.opacity = '1';
+
+        setTimeout(() => {
+            const sectors = [
+                { name: 'Renewable Energy', rationale: 'Strong government push and global shift towards green energy.', stocks: 'Tata Power, Borosil Renewables', score: 85 },
+                { name: 'IT & SaaS', rationale: 'Consistent global demand for digitization and high-margin services.', stocks: 'Infosys, Tata Elxsi', score: 75 },
+                { name: 'Infrastructure', rationale: 'Massive government spending on capex ensures a long runway for growth.', stocks: 'L&T, IRB Infra', score: 70 },
+                { name: 'FMCG', rationale: 'Defensive sector providing stability during volatile market conditions.', stocks: 'HUL, ITC', score: -30 },
+                { name: 'Metals', rationale: 'Currently facing headwinds due to global slowdown concerns.', stocks: 'Tata Steel, JSW Steel', score: -50 }
+            ];
+            
+            strategyOutput.innerHTML = `
+                <div id="strategy-report-card" class="report-card !bg-white text-left">
+                    <h3 class="text-2xl font-bold text-black">Market Trend Analysis</h3>
+                    <p class="text-sm text-gray-500 mb-4">Identifying sectors with the strongest momentum.</p>
+                    <div class="space-y-3">
+                        ${sectors.map(s => `
+                            <div class="p-4 rounded-lg border ${s.score > 0 ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-bold text-lg ${s.score > 0 ? 'text-green-800' : 'text-red-800'}">${s.name}</h4>
+                                    <div class="text-xs font-bold px-2 py-1 rounded-full ${s.score > 0 ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}">Momentum: ${s.score}</div>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">${s.rationale}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            strategyOutput.style.opacity = '1';
+        }, 1000);
+    }
+    
+    generateStrategyBtn.addEventListener('click', generateStrategy);
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const tickerInput = document.getElementById('stock-ticker-input');
+    const analysisOutput = document.getElementById('analysis-output');
+    analyzeBtn.addEventListener('click', performAnalysis);
+    tickerInput.addEventListener('keyup', (e) => e.key === 'Enter' && performAnalysis());
+    function performAnalysis() { 
+        const ticker = tickerInput.value.trim().toUpperCase(); if (!ticker) return;
+        analysisOutput.style.opacity = '0'; analysisOutput.innerHTML = `<p class="text-center text-gray-400">Fetching data for ${ticker}...</p>`; analysisOutput.style.opacity = '1';
+        setTimeout(() => {
+            const mockData = { 'RELIANCE.NS': { name: 'Reliance Industries', price: '2,890.50', change: '+15.20 (+0.53%)', cap: '19.55 Lakh Cr', pe: '28.7', high52: '3,024.90', low52: '2,220.30', dividendYield: '0.31%', founded: '1973', growth: '14-18% p.a.', summary: 'Reliance shows robust health across its diversified segments. Expansion into green energy and the digital ecosystem are key long-term positives. A core portfolio stock.' }, 'DEFAULT': { name: `${ticker.split('.')[0]}`, price: '1,234.56', change: '+10.00 (+0.81%)', cap: '5.00 Lakh Cr', pe: '25.0', high52: '1,500.00', low52: '900.00', dividendYield: '1.25%', founded: '2000', growth: '10-15% p.a.', summary: 'This company shows stable fundamentals within its sector. Future growth is tied to market expansion and product innovation. Considered a solid hold.' } };
+            const data = mockData[ticker] || mockData['DEFAULT']; const changeColor = data.change.includes('+') ? 'text-green-600' : 'text-red-600';
+            analysisOutput.innerHTML = `<div id="analysis-report-card" class="report-card !bg-white rounded-2xl"><div class="text-center"><h3 class="text-3xl font-bold text-black">${data.name}</h3><p class="text-sm text-gray-500">${ticker}</p></div><div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center border-t border-b border-gray-200 py-4"><div><p class="text-sm text-gray-500">Last Price</p><p class="text-2xl font-semibold text-black">${data.price}</p><p class="text-sm font-medium ${changeColor}">${data.change}</p></div><div><p class="text-sm text-gray-500">Market Cap</p><p class="text-lg font-semibold text-black">${data.cap}</p></div><div><p class="text-sm text-gray-500">P/E Ratio</p><p class="text-lg font-semibold text-black">${data.pe}</p></div><div><p class="text-sm text-gray-500">Est. Growth</p><p class="text-lg font-semibold text-black">${data.growth}</p></div></div><div id="analysis-details-${ticker}" class="details-section"><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div class="bg-gray-100 p-3 rounded-lg"><p class="text-gray-500">52-Week High</p><p class="font-semibold text-black">${data.high52}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p class="text-gray-500">52-Week Low</p><p class="font-semibold text-black">${data.low52}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p class="text-gray-500">Div. Yield</p><p class="font-semibold text-black">${data.dividendYield}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p class="text-gray-500">Founded</p><p class="font-semibold text-black">${data.founded}</p></div></div><div class="mt-4"><h4 class="font-semibold text-black">Analyst Summary</h4><p class="mt-1 text-gray-600 text-sm">${data.summary}</p></div><div class="mt-6 text-right" id="download-btn-container"><button onclick="downloadReport('analysis-report-card')" class="btn-primary !py-2 !px-4 !text-sm">Download Report</button></div></div><div class="text-center mt-4"><button id="analysis-toggle-btn" onclick="toggleDetails('analysis-details-${ticker}', this)" class="text-purple-600 text-sm font-semibold hover:text-black">Show Full Analysis &darr;</button></div></div>`;
+            analysisOutput.style.opacity = '1';
+        }, 1000);
+    }
+    function toggleDetails(elementId, button) { const detailsSection = document.getElementById(elementId); if (detailsSection.style.maxHeight && detailsSection.style.maxHeight !== '0px') { detailsSection.style.maxHeight = '0px'; detailsSection.classList.remove('open'); button.innerHTML = 'Show Full Analysis &darr;'; } else { detailsSection.style.maxHeight = detailsSection.scrollHeight + 'px'; detailsSection.classList.add('open'); button.innerHTML = 'Show Less &uarr;'; } }
+    function renderInvestmentSuggestions() {
+        const categories = [ { title: 'Top Upcoming IPOs', data: investmentData.IPOs, type: 'IPO', color: 'purple' }, { title: 'High-Growth Stocks', data: investmentData.Stocks, type: 'Stock', color: 'green' }, { title: 'Recommended Mutual Funds', data: investmentData.Funds, type: 'Fund', color: 'indigo' }];
+        let html = '';
+        categories.forEach(cat => {
+            html += `<div><h3 class="text-2xl font-bold mb-4 text-black">${cat.title}</h3><div class="horizontal-scroll">`;
+            cat.data.forEach(item => { html += `<div class="investment-card"><span class="font-bold text-${cat.color}-600">${cat.type}</span><h4 class="text-xl font-bold mt-2 text-black">${item.name}</h4><div class="text-center my-3 p-3 bg-${cat.color}-100 rounded-lg"><p class="text-sm text-${cat.color}-800 font-semibold">Est. Annual Growth</p><p class="text-2xl font-bold text-${cat.color}-700">${item.growth}</p></div><p class="text-xs text-gray-600 flex-grow">${item.rationale.substring(0, 100)}...</p><button class="show-more-btn mt-4 text-sm text-purple-600 font-semibold text-left" data-type='${cat.type}' data-name='${item.name}'>Show More &rarr;</button></div>`; });
+            html += `</div></div>`;
+        });
+        investmentSuggestionsEl.innerHTML = html;
+    }
+    investmentSuggestionsEl.addEventListener('click', (e) => { if (e.target.classList.contains('show-more-btn')) { const name = e.target.dataset.name; const type = e.target.dataset.type; const dataKey = type === 'IPO' ? 'IPOs' : (type === 'Stock' ? 'Stocks' : 'Funds'); const itemData = investmentData[dataKey].find(item => item.name === name); if (itemData) openDetailsModal(itemData, type); } });
+    function openDetailsModal(data, type) {
+        let detailsHtml = '';
+        if (type === 'IPO') { detailsHtml = `<div class="details-grid mt-4 text-sm"><div class="bg-gray-100 p-3 rounded-lg"><p>Issue Dates</p><p class="font-semibold">${data.details.date}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Issue Size</p><p class="font-semibold">${data.details.size}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Price Band</p><p class="font-semibold">${data.details.price}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Registrar</p><p class="font-semibold">${data.details.registrar}</p></div></div>`; }
+        else if (type === 'Stock') { detailsHtml = `<div class="details-grid mt-4 text-sm"><div class="bg-gray-100 p-3 rounded-lg"><p>Market Cap</p><p class="font-semibold">${data.details.marketCap}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>P/E Ratio</p><p class="font-semibold">${data.details.pe}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Owner</p><p class="font-semibold">${data.details.owner}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Founded</p><p class="font-semibold">${data.details.founded}</p></div></div>`; }
+        else if (type === 'Fund') { detailsHtml = `<div class="details-grid mt-4 text-sm"><div class="bg-gray-100 p-3 rounded-lg"><p>AUM</p><p class="font-semibold">${data.details.aum}</p></div><div class="bg-gray-100 p-3 rounded-lg"><p>Expense Ratio</p><p class="font-semibold">${data.details.expenseRatio}</p></div></div><div class="bg-gray-100 p-3 rounded-lg mt-4"><p>Top 3 Holdings</p><p class="font-semibold">${data.details.topHoldings}</p></div>`; }
+        modalContent.innerHTML = `<div class="modal-body"><div id="modal-report-card" class="light-modal-content p-6 sm:p-8 rounded-2xl"><button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl z-10">&times;</button><span class="font-bold text-purple-600">${type}</span><h3 class="text-3xl font-bold mt-2 text-black">${data.name}</h3><div class="text-center my-4 p-4 growth-card-popup rounded-lg"><p class="text-sm text-purple-200 font-semibold">Est. Annual Growth</p><p class="text-4xl font-bold">${data.growth}</p></div><h4 class="font-semibold text-black mt-6">Why You Should Invest:</h4><p class="text-sm rationale-text mt-2">${data.rationale}</p><h4 class="font-semibold text-black mt-6">Key Details:</h4>${detailsHtml}<div class="flex justify-between items-center mt-8 pt-4 border-t border-gray-200" id="modal-footer"><span class="text-lg font-bold icg-logo">ICG<span class="text-purple-600">.</span></span><button onclick="downloadReport('modal-report-card')" class="btn-primary !py-2 !px-4 !text-sm">Download Report</button></div></div></div>`;
+        modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => { modalContent.classList.remove('scale-95', 'opacity-0'); }, 10);
+        document.getElementById('close-modal-btn').addEventListener('click', closeDetailsModal);
+    }
+    function closeDetailsModal() { modalContent.classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300); }
+    modal.addEventListener('click', (e) => e.target === modal && closeDetailsModal());
+    function downloadReport(elementId) {
+        const reportElement = document.getElementById(elementId); if(!reportElement) return;
+        const isDark = !reportElement.classList.contains('light-modal-content');
+        const buttonsToHide = reportElement.querySelectorAll('button');
+        buttonsToHide.forEach(btn => btn.style.visibility = 'hidden');
+        const opts = { scale: 2, backgroundColor: isDark ? '#1d1d1f' : '#f5f5f7' };
+        html2canvas(reportElement, opts).then(canvas => {
+            buttonsToHide.forEach(btn => btn.style.visibility = 'visible');
+            const link = document.createElement('a'); link.download = `icg-report-${elementId.replace(/-\d+/g, '')}.png`; link.href = canvas.toDataURL('image/png'); link.click(); 
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        renderInvestmentSuggestions();
+    });
+    </script>
+</body>
+</html>
+
