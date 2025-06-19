@@ -151,8 +151,8 @@ async function refreshData() {
             { name: 'Fossil Fuels', rationale: 'Global efforts to transition to clean energy, environmental regulations, and volatility in oil prices are creating headwinds for the fossil fuel industry, leading to declining long-term prospects.', score: -20 }
         ];
 
-        // Update the data
-        db.data.investmentOpportunities = fetchedIPOs; // These lines update the data currently in db.data (either default or loaded)
+        // Update the data in memory
+        db.data.investmentOpportunities.IPOs = fetchedIPOs; // These lines update the data currently in db.data (either default or loaded)
         db.data.investmentOpportunities.Stocks = fetchedStocks;
         db.data.investmentOpportunities.Funds = fetchedFunds;
         db.data.marketTrends = fetchedMarketTrends;
