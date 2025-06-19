@@ -1,0 +1,19 @@
+{
+    "name": "icg-backend",
+    "version": "1.0.0",
+    "description": "Backend for ICG Investment Strategy & Analysis",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "refresh-data": "node data_refresher.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.19.2",
+        "lowdb": "^7.0.1",
+        "node-cron": "^3.0.0"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}
