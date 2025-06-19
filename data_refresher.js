@@ -1,4 +1,5 @@
-const { Low, JSONFile } = require('lowdb');
+const { Low } = require('lowdb'); // Only import Low
+const { JSONFile } = require('lowdb/node'); // Import JSONFile from the /node subpath
 const path = require('path');
 const fs = require('fs');
 
@@ -144,9 +145,8 @@ async function refreshData() {
             { name: 'Fossil Fuels', rationale: 'Global efforts to transition to clean energy, environmental regulations, and volatility in oil prices are creating headwinds for the fossil fuel industry, leading to declining long-term prospects.', score: -20 }
         ];
 
-
         await db.read(); // Read current state before updating
-        db.data = db.data || defaultData;
+        db.data = db.data || defaultData; // Ensure db.data is initialized
 
         db.data.investmentOpportunities.IPOs = fetchedIPOs;
         db.data.investmentOpportunities.Stocks = fetchedStocks;
@@ -162,6 +162,6 @@ async function refreshData() {
 }
 
 // Execute the refresh function when this script is run
+// This script is intended to be run by a separate Render Cron Job service
+// The cron schedule itself is configured in the Render Dashboard for this service
 refreshData();
-
-
