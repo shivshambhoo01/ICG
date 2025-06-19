@@ -1,25 +1,27 @@
 const express = require('express');
 const cors = require('cors');
-const { Low } = require('lowdb'); // Only import Low
-const { JSONFile } = require('lowdb/node'); // Import JSONFile from the /node subpath
-const path = require('path'); // Import path module
-const fs = require('fs'); // Import fs module for directory creation
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node'); // Correct import for JSONFile
+const path = require('path');
+const fs = require('fs');
+const cron = require('node-cron'); // Ensure cron is imported for scheduling
+
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Define the path for the data file within the persistent disk mount path (if configured on Render)
-// If not using a persistent disk, this file will be ephemeral.
+// Define the path for the data file, relying on DB_FILE_PATH env var for Render persistent disk
 const dbFilePath = process.env.DB_FILE_PATH || path.join(__dirname, 'data', 'icg_data.json');
 const adapter = new JSONFile(dbFilePath);
 const db = new Low(adapter);
 
-// Ensure the data directory exists on startup (especially important for persistent disks)
+// Ensure the data directory exists before trying to read/write
 const dataDir = path.dirname(dbFilePath);
 if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
+// Default data structure for the database
 const defaultData = {
     investmentOpportunities: {
         IPOs: [],
@@ -36,24 +38,27 @@ app.use(express.json());
 // Initialize the database on server start
 async function initializeDb() {
     try {
+        // Crucial fix: Set default data BEFORE trying to read.
+        // If the file is empty or doesn't exist, db.data will be defaultData.
+        // If it exists and is valid, db.data will be overwritten with file content.
+        db.data = defaultData;
         await db.read();
-        db.data = db.data || defaultData; // Set default data if db is empty
-        await db.write();
+        await db.write(); // Write back to ensure file is correctly initialized if it was empty/missing
         console.log('Database initialized successfully.');
     } catch (error) {
         console.error('Error initializing database:', error);
-        // Optionally exit or handle more gracefully if DB is critical
+        // This catch block might still trigger if there are severe file system issues.
     }
 }
 
-// API Endpoints
+// --- API Endpoints ---
 app.get('/api/investment-opportunities', async (req, res) => {
-    await db.read(); // Read the latest data from disk
+    await db.read(); // Read the latest data from disk before responding
     res.json(db.data.investmentOpportunities || {});
 });
 
 app.get('/api/market-trends', async (req, res) => {
-    await db.read(); // Read the latest data from disk
+    await db.read(); // Read the latest data from disk before responding
     res.json(db.data.marketTrends || []);
 });
 
@@ -130,10 +135,7 @@ app.get('/api/stock-analysis/:ticker', async (req, res) => {
     res.json(mockData[ticker] || mockData.DEFAULT);
 });
 
-// Assuming you want the cron job to run within the same web service
-// If you use a separate Render Cron Job, this part should be in data_refresher.js
-const cron = require('node-cron');
-
+// --- Data Refresh Job ---
 async function refreshDataJob() {
     console.log('--- Running Daily Data Refresh Job ---');
     try {
@@ -185,7 +187,7 @@ async function refreshDataJob() {
                     rationale: "Provider of cutting-edge telehealth platforms and digital health records. Benefiting from the accelerating digital transformation in healthcare.",
                     details: {
                         marketCap: "₹35,000 Cr",
-                        pe: "38.5",
+                    pe: "38.5",
                         dividendYield: "0.5%",
                         founded: "2015",
                         sector: "Healthcare"
@@ -254,31 +256,35 @@ async function refreshDataJob() {
             { name: 'Fossil Fuels', rationale: 'Global efforts to transition to clean energy, environmental regulations, and volatility in oil prices are creating headwinds for the fossil fuel industry, leading to declining long-term prospects.', score: -20 }
         ];
 
-        await db.read(); // Read current state before updating
-        db.data = db.data || defaultData; // Ensure db.data is initialized
+        // Before updating, ensure db.data is either loaded or set to default
+        db.data = defaultData; // This line ensures a fallback if read fails
+        await db.read(); // Read existing data if available
 
+        // Update the data
         db.data.investmentOpportunities = enrichedOpportunities;
         db.data.marketTrends = fetchedMarketTrends;
         db.data.lastUpdated = new Date().toISOString();
 
-        await db.write();
+        await db.write(); // Persist the updated data
         console.log('✅ Data Refresh Job Completed and data saved.');
     } catch (error) {
         console.error('❌ Data Refresh Job Failed', error);
     }
 }
 
-// Schedule the data refresh job to run daily at 8:00 AM UTC (adjust as needed)
-// For India Standard Time (IST), 8:00 AM IST is 2:30 AM UTC.
-// So, '30 2 * * *' for 2:30 AM UTC, or '0 8 * * *' for 8:00 AM UTC
-cron.schedule('0 8 * * *', refreshDataJob, { timezone: "Asia/Kolkata" }); // Still using IST timezone for clarity
+// Schedule the data refresh job to run daily at 8:00 AM UTC (2:30 PM IST)
+// For India Standard Time (IST), if you want 8:00 AM IST, it's 2:30 AM UTC: '30 2 * * *'
+// Currently set to 8:00 AM UTC (which is 1:30 PM IST) for illustrative purposes.
+// Adjust '0 8 * * *' to your desired UTC time.
+cron.schedule('0 8 * * *', refreshDataJob, { timezone: "Asia/Kolkata" }); // 'timezone' only affects interpretation if cron schedule is UTC based
+
 
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     await initializeDb();
-    // Optionally trigger initial data refresh on startup if data is empty
-    if (!db.data.lastUpdated) {
-        console.log('No initial data found, running first data refresh...');
+    // Optional: Trigger an immediate refresh if data looks empty on first start
+    if (!db.data || !db.data.lastUpdated) {
+        console.log('No initial data found or last updated time missing, running first data refresh...');
         await refreshDataJob();
     }
 });
