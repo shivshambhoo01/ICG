@@ -1,5 +1,5 @@
-const { Low } = require('lowdb'); // Only import Low
-const { JSONFile } = require('lowdb/node'); // Import JSONFile from the /node subpath
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node'); // Correct import for JSONFile
 const path = require('path');
 const fs = require('fs');
 
@@ -14,6 +14,7 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
+// Default data structure for the database
 const defaultData = {
     investmentOpportunities: {
         IPOs: [],
@@ -27,7 +28,12 @@ const defaultData = {
 async function refreshData() {
     console.log('--- Running Data Refresh Job ---');
     try {
-        // Simulate fetching live data
+        // Crucial fix: Set default data BEFORE trying to read.
+        // This ensures db.data always has a valid structure.
+        db.data = defaultData;
+        await db.read(); // Read existing data from the file (if it exists and is valid JSON)
+
+        // --- Simulate fetching live data ---
         const fetchedIPOs = [
             {
                 name: "NextGen Robotics",
@@ -145,16 +151,14 @@ async function refreshData() {
             { name: 'Fossil Fuels', rationale: 'Global efforts to transition to clean energy, environmental regulations, and volatility in oil prices are creating headwinds for the fossil fuel industry, leading to declining long-term prospects.', score: -20 }
         ];
 
-        await db.read(); // Read current state before updating
-        db.data = db.data || defaultData; // Ensure db.data is initialized
-
-        db.data.investmentOpportunities.IPOs = fetchedIPOs;
+        // Update the data
+        db.data.investmentOpportunities = fetchedIPOs; // These lines update the data currently in db.data (either default or loaded)
         db.data.investmentOpportunities.Stocks = fetchedStocks;
         db.data.investmentOpportunities.Funds = fetchedFunds;
         db.data.marketTrends = fetchedMarketTrends;
         db.data.lastUpdated = new Date().toISOString();
 
-        await db.write();
+        await db.write(); // Persist the updated data to the file
         console.log('✅ Data Refresh Job Completed and data saved.');
     } catch (error) {
         console.error('❌ Data Refresh Job Failed:', error);
@@ -162,6 +166,6 @@ async function refreshData() {
 }
 
 // Execute the refresh function when this script is run
-// This script is intended to be run by a separate Render Cron Job service
-// The cron schedule itself is configured in the Render Dashboard for this service
+// This script is primarily intended for use as a Render Cron Job,
+// where Render itself manages the schedule.
 refreshData();
