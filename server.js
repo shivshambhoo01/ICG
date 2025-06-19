@@ -53,7 +53,10 @@ async function initializeDb() {
 
 // --- API Endpoints ---
 app.get('/api/investment-opportunities', async (req, res) => {
-    await db.read(); // Read the latest data from disk before responding
+    // Before serving, always ensure data is fresh from disk
+    // In a production app with high traffic, consider caching this data in memory
+    // and only re-reading from disk periodically or after a write.
+    await db.read();
     res.json(db.data.investmentOpportunities || {});
 });
 
@@ -257,33 +260,35 @@ async function refreshDataJob() {
         ];
 
         // Before updating, ensure db.data is either loaded or set to default
-        db.data = defaultData; // This line ensures a fallback if read fails
-        await db.read(); // Read existing data if available
+        db.data = defaultData; // This line ensures a fallback if read fails or if first run
+        await db.read(); // Read existing data if available (will overwrite db.data if file exists and is valid)
 
-        // Update the data
+        // Update the data in memory
         db.data.investmentOpportunities = enrichedOpportunities;
+        db.data.investmentOpportunities.Stocks = fetchedStocks;
+        db.data.investmentOpportunities.Funds = fetchedFunds;
         db.data.marketTrends = fetchedMarketTrends;
         db.data.lastUpdated = new Date().toISOString();
 
-        await db.write(); // Persist the updated data
+        await db.write(); // Persist the updated data to the file
         console.log('✅ Data Refresh Job Completed and data saved.');
     } catch (error) {
         console.error('❌ Data Refresh Job Failed', error);
     }
 }
 
-// Schedule the data refresh job to run daily at 8:00 AM UTC (2:30 PM IST)
-// For India Standard Time (IST), if you want 8:00 AM IST, it's 2:30 AM UTC: '30 2 * * *'
-// Currently set to 8:00 AM UTC (which is 1:30 PM IST) for illustrative purposes.
-// Adjust '0 8 * * *' to your desired UTC time.
-cron.schedule('0 8 * * *', refreshDataJob, { timezone: "Asia/Kolkata" }); // 'timezone' only affects interpretation if cron schedule is UTC based
+// Schedule the data refresh job to run daily at 8:00 AM UTC (1:30 PM IST)
+// Render Cron Jobs usually run in UTC. If you want 8:00 AM IST, that's 2:30 AM UTC: '30 2 * * *'
+// This schedule will run daily at 8 AM UTC.
+cron.schedule('0 8 * * *', refreshDataJob, { timezone: "Asia/Kolkata" });
 
 
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     await initializeDb();
     // Optional: Trigger an immediate refresh if data looks empty on first start
-    if (!db.data || !db.data.lastUpdated) {
+    // This is useful for populating data immediately after deployment.
+    if (!db.data || !db.data.lastUpdated || db.data.marketTrends.length === 0) {
         console.log('No initial data found or last updated time missing, running first data refresh...');
         await refreshDataJob();
     }
